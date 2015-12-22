@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task" xmlns:int-kafka="http://www.springframework.org/schema/integration/kafka" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:stream="http://www.springframework.org/schema/integration/stream"
+	xsi:schemaLocation="
+           http://www.springframework.org/schema/integration/stream
+           http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
+           http://www.springframework.org/schema/integration
+           http://www.springframework.org/schema/integration/spring-integration.xsd
+           http://www.springframework.org/schema/integration/kafka
+           http://www.springframework.org/schema/integration/kafka/spring-integration-kafka.xsd
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-4.0.xsd
+           http://www.springframework.org/schema/task
+           http://www.springframework.org/schema/task/spring-task-4.0.xsd">
+	
+ 	<int-kafka:message-driven-channel-adapter channel="testChannel" connection-factory="kafkaConnectionFactory"
+		topics="metrics" payload-decoder="stringDecoder" offset-manager="offsetManager" />
+	<int:channel id="testChannel" />
+
+	<int-kafka:zookeeper-connect id="zookeeperConnect" zk-connect="localhost:2181" zk-connection-timeout="6000" zk-session-timeout="6000" zk-sync-time="2000" />
+	<bean id="stringDecoder" class="org.springframework.integration.kafka.serializer.common.StringDecoder" />
+	<bean id="kafkaConnectionFactory" class="org.springframework.integration.kafka.core.DefaultConnectionFactory">
+		<constructor-arg ref="zkConfiguration" />
+	</bean>
+	<bean id="zkConfiguration" class="org.springframework.integration.kafka.core.ZookeeperConfiguration">
+		<constructor-arg ref="zookeeperConnect" />
+		<property name="clientId" value="testClient"/>
+	</bean>
+	<bean id="offsetManager" class="org.springframework.integration.kafka.listener.KafkaNativeOffsetManager">
+		<constructor-arg ref="kafkaConnectionFactory" />
+		<constructor-arg ref="zookeeperConnect" />
+		<property name="consumerId" value="testClient"/>
+	</bean>
+
+</beans>
